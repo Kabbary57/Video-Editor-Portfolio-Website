@@ -163,6 +163,11 @@ function handleFullscreenChange() {
             span.textContent = isFs ? 'Exit Fullscreen' : 'Fullscreen';
         }
     });
+
+    const floatBtn = document.getElementById('floatingWhatsappBtn');
+    if (floatBtn) {
+        floatBtn.classList.toggle('is-hidden', isFs);
+    }
 }
 document.addEventListener('fullscreenchange', handleFullscreenChange);
 document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -634,6 +639,9 @@ function initAiProjectModal() {
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+
+        const floatBtn = document.getElementById('floatingWhatsappBtn');
+        if (floatBtn) floatBtn.classList.add('is-hidden');
     };
 
     function closeAiModal() {
@@ -641,6 +649,9 @@ function initAiProjectModal() {
         modal.setAttribute('aria-hidden', 'true');
         if (heroWrapper) heroWrapper.innerHTML = '';
         document.body.style.overflow = '';
+
+        const floatBtn = document.getElementById('floatingWhatsappBtn');
+        if (floatBtn) floatBtn.classList.remove('is-hidden');
     }
 
     if (backdrop) backdrop.addEventListener('click', closeAiModal);
