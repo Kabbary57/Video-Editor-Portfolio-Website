@@ -108,10 +108,10 @@ const PORTFOLIO_DATA = {
             category: "videography",
             orientation: "landscape",
             title: "Videography a simple Project",
-            desc: "Professional corporate event recap with clean interviews, B-roll stabilization, and uplifting background score.",
+            desc: "Task of film making workshop, the all entire projec(planning, videography, editing) in just 6 hours.",
             thumbnail: "https://img.ge/i/ko5u874.png",
             duration: "01:00",
-            tags: ["Corporate Event", "B-Roll Edit", "Color Matching", "Audio Polish"],
+            tags: ["Premiere Pro", "Film Making Task", "Videography", "Color Matching", "Vocal Removal"],
             driveUrl: "https://drive.google.com/file/d/1_UaiI_RnS01vrnv43GtER4rTyI9lK5KU/view?usp=sharing"
         },
         {
@@ -122,7 +122,7 @@ const PORTFOLIO_DATA = {
             desc: "Dynamic event highlight video capturing keynotes, audience engagement, fast cuts, and branded graphics.",
             thumbnail: "https://img.ge/i/vPAVb80.png",
             duration: "05:12",
-            tags: ["Event Recap", "Science Festivity", "Live Videography", "Highlight Reel"],
+            tags: ["Premiere Pro", "Event Recap", "Videography", , "Science Festivity", "Live Videography", "Highlight Reel"],
             driveUrl: "https://drive.google.com/file/d/133PfoXtzAushyVf-6jYyglpDc1zyMqFb/view?usp=sharing"
         },
 

@@ -128,6 +128,45 @@ function togglePlayback(itemId) {
     startPlayback(item);
 }
 
+function toggleFullscreen(elem) {
+    const iframe = elem ? (elem.tagName === 'IFRAME' ? elem : elem.querySelector('iframe')) : null;
+    const target = iframe || elem || document.documentElement;
+
+    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+
+    if (!isFullscreen) {
+        if (target.requestFullscreen) {
+            target.requestFullscreen();
+        } else if (target.webkitRequestFullscreen) {
+            target.webkitRequestFullscreen();
+        } else if (target.msRequestFullscreen) {
+            target.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Global Fullscreen Change Listener to keep button labels and states in sync
+function handleFullscreenChange() {
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+    document.querySelectorAll('.fullscreen-btn').forEach(btn => {
+        btn.classList.toggle('is-fullscreen', isFs);
+        const span = btn.querySelector('span');
+        if (span) {
+            span.textContent = isFs ? 'Exit Fullscreen' : 'Fullscreen';
+        }
+    });
+}
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
 function startPlayback(item) {
     const wrapper = document.querySelector(`.card-thumbnail-wrapper[data-item-id="${item.id}"]`);
     const cardBtn = document.querySelector(`.preview-btn[data-item-id="${item.id}"]`);
@@ -167,11 +206,30 @@ function startPlayback(item) {
 
     clipContainer.appendChild(iframe);
 
-    // Close overlay button over iframe for quick stopping
+    // Overlay controls container (Fullscreen & Close Video buttons)
+    const controlsGroup = document.createElement('div');
+    controlsGroup.className = 'video-overlay-controls';
+
+    const fullscreenBtn = document.createElement('button');
+    fullscreenBtn.className = 'fullscreen-btn';
+    fullscreenBtn.setAttribute('aria-label', 'Toggle Fullscreen');
+    fullscreenBtn.setAttribute('title', 'Fullscreen');
+    fullscreenBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+        <span>Fullscreen</span>
+    `;
+
+    fullscreenBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFullscreen(clipContainer);
+    });
+
     const closeBtn = document.createElement('button');
     closeBtn.className = 'stop-playback-btn';
     closeBtn.setAttribute('aria-label', 'Stop playback');
-    closeBtn.setAttribute('title', 'Stop playback');
+    closeBtn.setAttribute('title', 'Close Video');
     closeBtn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         <span>Close Video</span>
@@ -182,8 +240,11 @@ function startPlayback(item) {
         stopPlayback(item.id);
     });
 
+    controlsGroup.appendChild(fullscreenBtn);
+    controlsGroup.appendChild(closeBtn);
+
     wrapper.appendChild(clipContainer);
-    wrapper.appendChild(closeBtn);
+    wrapper.appendChild(controlsGroup);
 
     // Update card action button
     if (cardBtn) {
@@ -203,10 +264,12 @@ function stopPlayback(itemId) {
         wrapper.classList.remove('is-playing');
         const clipContainer = wrapper.querySelector('.iframe-clipping-container');
         const spinner = wrapper.querySelector('.video-loading-spinner');
+        const controlsGroup = wrapper.querySelector('.video-overlay-controls');
         const closeBtn = wrapper.querySelector('.stop-playback-btn');
 
         if (clipContainer) clipContainer.remove();
         if (spinner) spinner.remove();
+        if (controlsGroup) controlsGroup.remove();
         if (closeBtn) closeBtn.remove();
     }
 
@@ -519,8 +582,16 @@ function initAiProjectModal() {
         // Populate Hero Video
         if (embedUrl) {
             heroWrapper.innerHTML = `
-                <div class="iframe-clipping-container ${orientation} loaded" style="position: relative; width: 100%; aspect-ratio: ${orientation === 'portrait' ? '9/16' : '16/9'}; max-height: ${orientation === 'portrait' ? '460px' : '400px'}; margin: 0 auto;">
+                <div class="iframe-clipping-container ${orientation} loaded" id="aiModalClipContainer" style="position: relative; width: 100%; aspect-ratio: ${orientation === 'portrait' ? '9/16' : '16/9'}; ${orientation === 'portrait' ? 'max-height: 520px;' : ''} margin: 0 auto;">
                     <iframe src="${embedUrl}" title="${escapeHtml(item.title)}" class="inline-player-iframe ${orientation} loaded" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    <div class="video-overlay-controls">
+                        <button class="fullscreen-btn" aria-label="Toggle Fullscreen" title="Fullscreen" onclick="toggleFullscreen(document.getElementById('aiModalClipContainer'))">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            </svg>
+                            <span>Fullscreen</span>
+                        </button>
+                    </div>
                 </div>
             `;
         } else {
