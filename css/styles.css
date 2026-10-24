@@ -1101,6 +1101,125 @@ button {
     }
 }
 
+/* ==========================================================================
+   Portfolio Category Sections & Cinematic Separators
+   ========================================================================== */
+.portfolio-category-section {
+    margin-bottom: 3.5rem;
+    width: 100%;
+    animation: sectionFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.portfolio-category-section:last-child {
+    margin-bottom: 0;
+}
+
+.single-category-grid {
+    animation: sectionFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes sectionFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.category-separator {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.category-separator-indicator {
+    display: inline-block;
+    width: 4px;
+    height: 22px;
+    background: linear-gradient(180deg, #ff2e55 0%, #e50914 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 14px rgba(255, 46, 85, 0.65), 0 0 4px #e50914;
+    flex-shrink: 0;
+}
+
+.category-separator-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.15rem, 2vw, 1.35rem);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.category-count {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255, 46, 85, 0.1);
+    border: 1px solid rgba(255, 46, 85, 0.25);
+    color: #FF334B;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.category-separator-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.45), rgba(255, 255, 255, 0.08) 60%, transparent);
+}
+
+/* Category-specific Video Grid Adaptations */
+.category-video-grid.portrait-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .category-video-grid.portrait-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .portfolio-category-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .category-separator {
+        gap: 10px;
+        margin-bottom: 1.15rem;
+    }
+
+    .category-separator-indicator {
+        height: 18px;
+        width: 3.5px;
+    }
+
+    .category-separator-title {
+        font-size: 1.05rem;
+    }
+
+    .category-count {
+        font-size: 0.72rem;
+        padding: 3px 8px;
+    }
+
+    .category-video-grid.portrait-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
 /* Framer-Style Card Motion & Entrance */
 @keyframes cardEntrance {
     0% {

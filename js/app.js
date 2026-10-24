@@ -298,14 +298,181 @@ function getCategoryBadgeLabel(cat) {
 /* ==========================================================================
    4. Portfolio Rendering & Interactive Filter System
    ========================================================================== */
+const PORTFOLIO_CATEGORIES = [
+    { key: 'short-form', title: 'Short-Form (Reels / Shorts)' },
+    { key: 'motion', title: 'Motion Graphics & Chroma' },
+    { key: 'long-form', title: 'Long-Form (YouTube)' },
+    { key: 'videography', title: 'Videography & Events' },
+    { key: 'ai-videos', title: 'AI Videos' },
+    { key: '3d', title: '3D Works' }
+];
+
+function createCardHtml(item, index = 0) {
+    const orientation = item.orientation || (item.category === 'short-form' ? 'portrait' : 'landscape');
+    const catLabel = getCategoryBadgeLabel(item.category);
+    const driveUrl = item.driveUrl || 'https://www.behance.net/kabbary';
+    const hasDriveUrl = !!item.driveUrl;
+
+    return `
+    <article class="video-card ${orientation === 'portrait' ? 'portrait-card' : 'landscape-card'}" 
+             data-id="${item.id}" 
+             data-category="${item.category}" 
+             data-orientation="${orientation}"
+             style="animation-delay: ${index * 35}ms;">
+        
+        <!-- Video Thumbnail Area (Clicking opens Lightbox Video Modal) -->
+        <div class="card-thumbnail-wrapper" 
+             role="button" 
+             tabindex="0" 
+             aria-label="Watch video: ${escapeHtml(item.title)}" 
+             data-item-id="${item.id}"
+             data-orientation="${orientation}">
+            <img src="${item.thumbnail}" alt="${escapeHtml(item.title)}" class="card-thumbnail" loading="lazy">
+            
+            <div class="thumbnail-badges">
+                <span class="category-pill">${catLabel}</span>
+                <span class="orientation-pill ${orientation}">${orientation === 'portrait' ? '9:16 Reel' : '16:9'}</span>
+            </div>
+
+            <!-- Centered Play Button Overlay -->
+            <div class="play-overlay">
+                <div class="play-btn-circle" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                    </svg>
+                </div>
+                <span class="play-overlay-text"></span>
+            </div>
+
+            <div class="duration-badge">${item.duration}</div>
+        </div>
+
+        <!-- Card Body (Directly underneath thumbnail) -->
+        <div class="card-body">
+            <!-- Title & Category Row with Mandatory External Link Button -->
+            <div class="card-header-row">
+                <div class="card-title-wrap">
+                    <span class="card-cat-name">${catLabel}</span>
+                    <h4 class="card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h4>
+                </div>
+                
+                <!-- Mandatory External Hyperlink Icon Button Underneath Video -->
+                <a href="${driveUrl}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="card-ext-icon-btn" 
+                   title="${hasDriveUrl ? 'Open Google Drive video in new tab' : 'Open project on Behance'}" 
+                   aria-label="Open original link for ${escapeHtml(item.title)} in new tab">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                </a>
+            </div>
+
+            <p class="card-desc">${escapeHtml(item.desc)}</p>
+
+            <div class="card-tags">
+                ${item.tags.map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}
+            </div>
+
+            <!-- Card Footer Actions -->
+            <div class="card-footer">
+                <button class="card-watch-btn" type="button" data-item-id="${item.id}">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                    </svg>
+                    <span>Watch Video</span>
+                </button>
+
+                <a href="${driveUrl}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="card-footer-ext-btn" 
+                   title="${hasDriveUrl ? 'Open Google Drive link in new tab' : 'Open Behance link in new tab'}">
+                    <span>${hasDriveUrl ? 'Original Link' : 'Behance'}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                </a>
+
+                ${item.aiDetails ? `
+                    <button class="card-case-study-btn" type="button" data-item-id="${item.id}" title="View AI Case Study">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                        <span>Case Study</span>
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    </article>
+    `;
+}
+
+function createCategorySeparatorHtml(cat, count) {
+    const countBadge = `${count} ${count === 1 ? 'Video' : 'Videos'}`;
+    return `
+        <div class="category-separator">
+            <span class="category-separator-indicator" aria-hidden="true"></span>
+            <h3 class="category-separator-title">${escapeHtml(cat.title)}</h3>
+            <span class="category-count">${countBadge}</span>
+            <div class="category-separator-line"></div>
+        </div>
+    `;
+}
+
+function attachCardListeners(rootElem) {
+    if (!rootElem) return;
+
+    // 1. Thumbnail click / keyboard opens lightbox modal
+    rootElem.querySelectorAll('.card-thumbnail-wrapper').forEach(wrapper => {
+        const itemId = wrapper.dataset.itemId;
+        const item = PORTFOLIO_DATA.portfolioItems.find(i => i.id === itemId);
+        wrapper.addEventListener('click', () => {
+            if (item && window.openVideoModal) window.openVideoModal(item);
+        });
+        wrapper.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (item && window.openVideoModal) window.openVideoModal(item);
+            }
+        });
+    });
+
+    // 2. Watch Video button in card footer opens lightbox modal
+    rootElem.querySelectorAll('.card-watch-btn').forEach(btn => {
+        const itemId = btn.dataset.itemId;
+        const item = PORTFOLIO_DATA.portfolioItems.find(i => i.id === itemId);
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (item && window.openVideoModal) window.openVideoModal(item);
+        });
+    });
+
+    // 3. External link buttons - stop propagation so parent card click doesn't trigger modal
+    rootElem.querySelectorAll('.card-ext-icon-btn, .card-footer-ext-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
+
+    // 4. Case Study button
+    rootElem.querySelectorAll('.card-case-study-btn').forEach(btn => {
+        const itemId = btn.dataset.itemId;
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (window.openAiProjectModal) window.openAiProjectModal(itemId);
+        });
+    });
+}
+
 function initPortfolio() {
     const container = document.getElementById('portfolioContainer');
     const tabsContainer = document.getElementById('portfolioTabs');
     if (!container || !PORTFOLIO_DATA.portfolioItems) return;
 
-    // Create responsive video grid container
-    container.innerHTML = '<div class="video-grid" id="portfolioVideoGrid"></div>';
-    const grid = document.getElementById('portfolioVideoGrid');
 
     // Dynamically calculate and sync category tab count badges
     if (tabsContainer) {
@@ -324,165 +491,69 @@ function initPortfolio() {
     }
 
     function renderCards(filterCategory = 'all') {
-        const items = filterCategory === 'all'
-            ? PORTFOLIO_DATA.portfolioItems
-            : PORTFOLIO_DATA.portfolioItems.filter(item =>
+        if (filterCategory === 'all') {
+            // Grouped Rendering for "All Projects" with Cinematic Category Separators
+            let sectionsHtml = '';
+            let globalCardIndex = 0;
+
+            PORTFOLIO_CATEGORIES.forEach(cat => {
+                const catItems = PORTFOLIO_DATA.portfolioItems.filter(item =>
+                    item.category && item.category.toLowerCase() === cat.key.toLowerCase()
+                );
+
+                // Skip category if currently 0 videos
+                if (catItems.length === 0) return;
+
+                const isPortrait = cat.key === 'short-form';
+                const gridClass = isPortrait ? 'portrait-grid' : 'landscape-grid';
+
+                sectionsHtml += `
+                    <div class="portfolio-category-section" data-category="${cat.key}">
+                        ${createCategorySeparatorHtml(cat, catItems.length)}
+                        <div class="video-grid category-video-grid ${gridClass}">
+                            ${catItems.map(item => createCardHtml(item, globalCardIndex++)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!sectionsHtml) {
+                container.innerHTML = `
+                    <div class="portfolio-empty-state">
+                        <p>No projects found.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = sectionsHtml;
+        } else {
+            // Single Specific Category Filtered View
+            const items = PORTFOLIO_DATA.portfolioItems.filter(item =>
                 item.category && item.category.toLowerCase() === filterCategory.toLowerCase()
             );
 
-        if (items.length === 0) {
-            grid.innerHTML = `
-                <div class="portfolio-empty-state">
-                    <p>No videos found for this category.</p>
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="portfolio-empty-state">
+                        <p>No videos found for this category.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const isPortrait = filterCategory === 'short-form';
+            const gridClass = isPortrait ? 'portrait-grid' : 'landscape-grid';
+
+            container.innerHTML = `
+                <div class="video-grid category-video-grid ${gridClass} single-category-grid">
+                    ${items.map((item, index) => createCardHtml(item, index)).join('')}
                 </div>
             `;
-            return;
         }
 
-        grid.innerHTML = items.map((item, index) => {
-            const orientation = item.orientation || (item.category === 'short-form' ? 'portrait' : 'landscape');
-            const catLabel = getCategoryBadgeLabel(item.category);
-            const driveUrl = item.driveUrl || 'https://www.behance.net/kabbary';
-            const hasDriveUrl = !!item.driveUrl;
-
-            return `
-            <article class="video-card ${orientation === 'portrait' ? 'portrait-card' : 'landscape-card'}" 
-                     data-id="${item.id}" 
-                     data-category="${item.category}" 
-                     data-orientation="${orientation}"
-                     style="animation-delay: ${index * 35}ms;">
-                
-                <!-- Video Thumbnail Area (Clicking opens Lightbox Video Modal) -->
-                <div class="card-thumbnail-wrapper" 
-                     role="button" 
-                     tabindex="0" 
-                     aria-label="Watch video: ${escapeHtml(item.title)}" 
-                     data-item-id="${item.id}">
-                    <img src="${item.thumbnail}" alt="${escapeHtml(item.title)}" class="card-thumbnail" loading="lazy">
-                    
-                    <div class="thumbnail-badges">
-                        <span class="category-pill">${catLabel}</span>
-                        <span class="orientation-pill ${orientation}">${orientation === 'portrait' ? '9:16 Reel' : '16:9'}</span>
-                    </div>
-
-                    <!-- Centered Play Button Overlay -->
-                    <div class="play-overlay">
-                        <div class="play-btn-circle" aria-hidden="true">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                            </svg>
-                        </div>
-                        <span class="play-overlay-text"></span>
-                    </div>
-
-                    <div class="duration-badge">${item.duration}</div>
-                </div>
-
-                <!-- Card Body (Directly underneath thumbnail) -->
-                <div class="card-body">
-                    <!-- Title & Category Row with Mandatory External Link Button -->
-                    <div class="card-header-row">
-                        <div class="card-title-wrap">
-                            <span class="card-cat-name">${catLabel}</span>
-                            <h4 class="card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h4>
-                        </div>
-                        
-                        <!-- Mandatory External Hyperlink Icon Button Underneath Video -->
-                        <a href="${driveUrl}" 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           class="card-ext-icon-btn" 
-                           title="${hasDriveUrl ? 'Open Google Drive video in new tab' : 'Open project on Behance'}" 
-                           aria-label="Open original link for ${escapeHtml(item.title)} in new tab">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                <polyline points="15 3 21 3 21 9"></polyline>
-                                <line x1="10" y1="14" x2="21" y2="3"></line>
-                            </svg>
-                        </a>
-                    </div>
-
-                    <p class="card-desc">${escapeHtml(item.desc)}</p>
-
-                    <div class="card-tags">
-                        ${item.tags.map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}
-                    </div>
-
-                    <!-- Card Footer Actions -->
-                    <div class="card-footer">
-                        <button class="card-watch-btn" type="button" data-item-id="${item.id}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                            </svg>
-                            <span>Watch Video</span>
-                        </button>
-
-                        <a href="${driveUrl}" 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           class="card-footer-ext-btn" 
-                           title="${hasDriveUrl ? 'Open Google Drive link in new tab' : 'Open Behance link in new tab'}">
-                            <span>${hasDriveUrl ? 'Original Link' : 'Behance'}</span>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                <polyline points="15 3 21 3 21 9"></polyline>
-                                <line x1="10" y1="14" x2="21" y2="3"></line>
-                            </svg>
-                        </a>
-
-                        ${item.aiDetails ? `
-                            <button class="card-case-study-btn" type="button" data-item-id="${item.id}" title="View AI Case Study">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                                <span>Case Study</span>
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-            </article>
-            `;
-        }).join('');
-
-        // Delegate listeners:
-        // 1. Thumbnail click opens modal
-        grid.querySelectorAll('.card-thumbnail-wrapper').forEach(wrapper => {
-            const itemId = wrapper.dataset.itemId;
-            const item = PORTFOLIO_DATA.portfolioItems.find(i => i.id === itemId);
-            wrapper.addEventListener('click', () => {
-                if (item && window.openVideoModal) window.openVideoModal(item);
-            });
-            wrapper.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (item && window.openVideoModal) window.openVideoModal(item);
-                }
-            });
-        });
-
-        // 2. Watch Video button in footer opens modal
-        grid.querySelectorAll('.card-watch-btn').forEach(btn => {
-            const itemId = btn.dataset.itemId;
-            const item = PORTFOLIO_DATA.portfolioItems.find(i => i.id === itemId);
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (item && window.openVideoModal) window.openVideoModal(item);
-            });
-        });
-
-        // 3. External link buttons - stop propagation to prevent triggering modal
-        grid.querySelectorAll('.card-ext-icon-btn, .card-footer-ext-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        });
-
-        // 4. Case Study button
-        grid.querySelectorAll('.card-case-study-btn').forEach(btn => {
-            const itemId = btn.dataset.itemId;
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (window.openAiProjectModal) window.openAiProjectModal(itemId);
-            });
-        });
+        // Attach listeners across all cards in container
+        attachCardListeners(container);
     }
 
     // Default: Show ALL videos on page load
